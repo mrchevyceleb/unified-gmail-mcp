@@ -27,7 +27,7 @@ Perfect for managing personal, work, and client email addresses through Claude o
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/unified-gmail-mcp.git
+   git clone https://github.com/mrchevyceleb/unified-gmail-mcp.git
    cd unified-gmail-mcp
    ```
 
@@ -342,8 +342,8 @@ Built with:
 
 ## Support
 
-- 🐛 [Report a Bug](https://github.com/yourusername/unified-gmail-mcp/issues)
-- 💡 [Request a Feature](https://github.com/yourusername/unified-gmail-mcp/issues)
+- 🐛 [Report a Bug](https://github.com/mrchevyceleb/unified-gmail-mcp/issues)
+- 💡 [Request a Feature](https://github.com/mrchevyceleb/unified-gmail-mcp/issues)
 - 📖 [MCP Documentation](https://modelcontextprotocol.io)
 
 ---
