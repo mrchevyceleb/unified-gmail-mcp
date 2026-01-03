@@ -16,6 +16,7 @@ export interface UnifiedMessage {
   snippet: string;
   labels: string[];
   isUnread: boolean;
+  rfc2822MessageId?: string; // RFC 2822 Message-ID header for threading
 }
 
 export interface AccountSummary {

@@ -46,7 +46,7 @@ export class GmailClient {
         userId: 'me',
         id: messageId,
         format: 'metadata',
-        metadataHeaders: ['From', 'To', 'Subject', 'Date'],
+        metadataHeaders: ['From', 'To', 'Subject', 'Date', 'Message-ID'],
       });
 
       const headers = response.data.payload?.headers || [];
@@ -67,6 +67,7 @@ export class GmailClient {
         snippet: response.data.snippet || '',
         labels: response.data.labelIds || [],
         isUnread: response.data.labelIds?.includes('UNREAD') || false,
+        rfc2822MessageId: getHeader('Message-ID') || undefined,
       };
     } catch (err) {
       console.error(`Failed to fetch message ${messageId}:`, err);

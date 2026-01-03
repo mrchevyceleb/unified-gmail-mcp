@@ -88,7 +88,7 @@ export class SendTools {
         subject,
         body: params.body,
         threadId: originalMessage.threadId,
-        inReplyTo: params.messageId,
+        inReplyTo: originalMessage.rfc2822MessageId,
       });
 
       return { success: true, messageId };
