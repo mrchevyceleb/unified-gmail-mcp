@@ -4,8 +4,9 @@ import { homedir } from 'os';
 import { mkdirSync, existsSync } from 'fs';
 import type { AccountConfig } from '../gmail/types.js';
 
-const DATA_DIR = join(homedir(), '.unified-gmail-mcp');
+const DATA_DIR = process.env.GMAIL_MCP_DATA_DIR || join(homedir(), '.unified-gmail-mcp');
 const DB_PATH = join(DATA_DIR, 'accounts.db');
+const MAX_ACCOUNTS = 10;
 
 export class TokenStore {
   private db: Database.Database;
@@ -66,7 +67,24 @@ export class TokenStore {
     };
   }
 
+  getAccountCount(): number {
+    const stmt = this.db.prepare('SELECT COUNT(*) as count FROM accounts');
+    const result = stmt.get() as { count: number };
+    return result.count;
+  }
+
+  canAddAccount(): boolean {
+    return this.getAccountCount() < MAX_ACCOUNTS;
+  }
+
   saveAccount(config: AccountConfig): void {
+    // Check if this is an existing account (update) or new account (insert)
+    const existing = this.getAccount(config.email);
+
+    if (!existing && !this.canAddAccount()) {
+      throw new Error(`Maximum of ${MAX_ACCOUNTS} accounts reached. Remove an account before adding a new one.`);
+    }
+
     const stmt = this.db.prepare(`
       INSERT OR REPLACE INTO accounts (email, access_token, refresh_token, token_expiry)
       VALUES (?, ?, ?, ?)

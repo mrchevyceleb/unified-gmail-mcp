@@ -199,7 +199,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       // Send operations
       {
         name: 'send',
-        description: 'Send an email from a specific account.',
+        description: 'Send an email from a specific account. Supports plain text, HTML, or markdown formatting, plus attachments.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -218,7 +218,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             body: {
               type: 'string',
-              description: 'Email body (plain text)',
+              description: 'Email body content',
             },
             cc: {
               type: 'array',
@@ -230,13 +230,31 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               items: { type: 'string' },
               description: 'BCC recipients',
             },
+            format: {
+              type: 'string',
+              enum: ['plain', 'html', 'markdown'],
+              description: 'Email format: "plain" for plain text (default), "html" for raw HTML, "markdown" for markdown that gets converted to styled HTML',
+            },
+            attachments: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  filename: { type: 'string', description: 'Name of the attachment file' },
+                  content: { type: 'string', description: 'Base64 encoded file content' },
+                  mimeType: { type: 'string', description: 'MIME type (e.g., "application/pdf", "image/png")' },
+                },
+                required: ['filename', 'content', 'mimeType'],
+              },
+              description: 'File attachments (base64 encoded)',
+            },
           },
           required: ['account', 'to', 'subject', 'body'],
         },
       },
       {
         name: 'reply',
-        description: 'Reply to a specific message. The account is auto-detected from the original message.',
+        description: 'Reply to a specific message. Supports plain text, HTML, or markdown formatting, plus attachments.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -250,7 +268,25 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             body: {
               type: 'string',
-              description: 'Reply body (plain text)',
+              description: 'Reply body content',
+            },
+            format: {
+              type: 'string',
+              enum: ['plain', 'html', 'markdown'],
+              description: 'Email format: "plain" for plain text (default), "html" for raw HTML, "markdown" for markdown that gets converted to styled HTML',
+            },
+            attachments: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  filename: { type: 'string', description: 'Name of the attachment file' },
+                  content: { type: 'string', description: 'Base64 encoded file content' },
+                  mimeType: { type: 'string', description: 'MIME type (e.g., "application/pdf", "image/png")' },
+                },
+                required: ['filename', 'content', 'mimeType'],
+              },
+              description: 'File attachments (base64 encoded)',
             },
           },
           required: ['messageId', 'account', 'body'],
@@ -359,6 +395,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           body: args?.body as string,
           cc: args?.cc as string[] | undefined,
           bcc: args?.bcc as string[] | undefined,
+          format: args?.format as 'plain' | 'html' | 'markdown' | undefined,
+          attachments: args?.attachments as Array<{ filename: string; content: string; mimeType: string }> | undefined,
         });
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -370,6 +408,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           messageId: args?.messageId as string,
           account: args?.account as string,
           body: args?.body as string,
+          format: args?.format as 'plain' | 'html' | 'markdown' | undefined,
+          attachments: args?.attachments as Array<{ filename: string; content: string; mimeType: string }> | undefined,
         });
         return {
           content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],

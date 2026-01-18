@@ -1,5 +1,5 @@
 import type { AccountConfig } from '../gmail/types.js';
-import { GmailClient } from '../gmail/client.js';
+import { GmailClient, type EmailFormat, type Attachment } from '../gmail/client.js';
 import { OAuthManager } from '../auth/oauth.js';
 import { TokenStore } from '../auth/token-store.js';
 import { MessageAggregator } from '../unified/aggregator.js';
@@ -34,6 +34,8 @@ export class SendTools {
     body: string;
     cc?: string[];
     bcc?: string[];
+    format?: EmailFormat;
+    attachments?: Attachment[];
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       const accountConfig = this.tokenStore.getAccount(params.account);
@@ -48,6 +50,8 @@ export class SendTools {
         body: params.body,
         cc: params.cc,
         bcc: params.bcc,
+        format: params.format,
+        attachments: params.attachments,
       });
 
       return { success: true, messageId };
@@ -60,6 +64,8 @@ export class SendTools {
     messageId: string;
     account: string;
     body: string;
+    format?: EmailFormat;
+    attachments?: Attachment[];
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       const accountConfig = this.tokenStore.getAccount(params.account);
@@ -89,6 +95,8 @@ export class SendTools {
         body: params.body,
         threadId: originalMessage.threadId,
         inReplyTo: originalMessage.rfc2822MessageId,
+        format: params.format,
+        attachments: params.attachments,
       });
 
       return { success: true, messageId };
