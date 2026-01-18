@@ -9,21 +9,42 @@ Perfect for managing personal, work, and client email addresses through Claude o
 - 📬 **Unified Inbox** - View messages from all accounts in a single, date-sorted stream
 - 🔍 **Cross-Account Search** - Search across all connected Gmail accounts simultaneously
 - 📤 **Send & Reply** - Send emails from any connected account with proper threading
+- ✨ **Rich Text Emails** - Send plain text, HTML, or Markdown emails (auto-converted to styled HTML)
+- 📎 **Attachments** - Send files with any email (base64 encoded)
 - 🗄️ **Archive Support** - Archive messages across all accounts
 - 🔐 **OAuth 2.0** - Secure authentication with automatic token refresh
 - 💾 **Local Storage** - Tokens stored locally in SQLite (not sent to external servers)
 - ⚡ **Parallel Fetching** - Fast performance with concurrent API calls
+- 🔢 **Multi-Account** - Support for up to 10 Gmail accounts
 
 ## Installation
 
-### Prerequisites
+### Option 1: npm (Recommended)
 
-- Node.js 18 or higher
-- A Google Cloud Project with OAuth 2.0 credentials
-- Gmail API enabled
-- Claude Desktop or another MCP-compatible client
+Install globally and run with npx:
 
-### Quick Start
+```bash
+npm install -g unified-gmail-mcp
+```
+
+Or use directly with npx (no install required):
+
+```json
+{
+  "mcpServers": {
+    "unified-gmail": {
+      "command": "npx",
+      "args": ["-y", "unified-gmail-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+### Option 2: From Source
 
 1. **Clone the repository:**
    ```bash
@@ -80,6 +101,14 @@ The server requests these scopes during authentication:
 
 ## Configuration
 
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GOOGLE_OAUTH_CLIENT_ID` | Yes | Your Google OAuth Client ID |
+| `GOOGLE_OAUTH_CLIENT_SECRET` | Yes | Your Google OAuth Client Secret |
+| `GMAIL_MCP_DATA_DIR` | No | Custom path for token storage (default: `~/.unified-gmail-mcp`) |
+
 ### Claude Desktop
 
 Add this to your Claude Desktop config file:
@@ -87,10 +116,29 @@ Add this to your Claude Desktop config file:
 **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
+#### Using npx (Recommended)
+
 ```json
 {
   "mcpServers": {
-    "unified_gmail": {
+    "unified-gmail": {
+      "command": "npx",
+      "args": ["-y", "unified-gmail-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+#### Using Local Installation
+
+```json
+{
+  "mcpServers": {
+    "unified-gmail": {
       "command": "node",
       "args": ["/absolute/path/to/unified-gmail-mcp/dist/index.js"],
       "env": {
@@ -101,11 +149,6 @@ Add this to your Claude Desktop config file:
   }
 }
 ```
-
-Replace:
-- `/absolute/path/to/` with the actual path to your installation
-- `your-client-id` with your Google OAuth Client ID
-- `your-client-secret` with your Google OAuth Client Secret
 
 ### Other MCP Clients
 
@@ -129,7 +172,7 @@ This will:
 3. Request permission to access Gmail
 4. Save the tokens locally for future use
 
-Repeat for each Gmail account you want to add.
+Repeat for each Gmail account you want to add (up to 10 accounts).
 
 ### Checking Email
 
@@ -155,8 +198,32 @@ Uses Gmail search syntax across all connected accounts.
 
 ### Sending Email
 
+#### Plain Text
+
 ```
 "Send an email from my work account to john@example.com"
+```
+
+#### Markdown (Rich Text)
+
+```
+"Send an email with format markdown to john@example.com with body:
+
+# Meeting Summary
+
+Here are the key points:
+- Item 1
+- Item 2
+
+**Action items** are due Friday."
+```
+
+The markdown is automatically converted to beautifully styled HTML.
+
+#### HTML
+
+```
+"Send an HTML email to john@example.com with this body: <h1>Hello</h1><p>Welcome!</p>"
 ```
 
 ### Replying
@@ -166,6 +233,14 @@ Uses Gmail search syntax across all connected accounts.
 ```
 
 Automatically uses the account that received the original message.
+
+### Sending with Attachments
+
+```
+"Send an email to john@example.com with subject 'Report' and attach the PDF"
+```
+
+Attachments are provided as base64-encoded content with filename and MIME type.
 
 ### Archiving
 
@@ -180,7 +255,7 @@ Removes messages from inbox while keeping them in the account.
 The MCP provides these tools to AI assistants:
 
 ### Account Management
-- `add_account` - Add a Gmail account via OAuth
+- `add_account` - Add a Gmail account via OAuth (max 10 accounts)
 - `list_accounts` - List all connected accounts with status
 - `remove_account` - Remove a Gmail account
 
@@ -192,11 +267,31 @@ The MCP provides these tools to AI assistants:
 
 ### Email Operations
 - `send` - Send email from a specific account
+  - Supports `format`: `plain` (default), `html`, or `markdown`
+  - Supports `attachments`: Array of `{filename, content, mimeType}`
 - `reply` - Reply to a message (auto-detects correct account)
+  - Supports `format` and `attachments` same as send
 - `archive_message` - Archive a single message
 - `archive_messages` - Archive multiple messages
 
-See [API Documentation](./docs/API.md) for detailed tool specifications.
+### Send Tool Parameters
+
+```typescript
+{
+  account: string;        // Email address to send from
+  to: string[];          // Recipient email addresses
+  subject: string;       // Email subject
+  body: string;          // Email body content
+  cc?: string[];         // CC recipients
+  bcc?: string[];        // BCC recipients
+  format?: 'plain' | 'html' | 'markdown';  // Email format (default: plain)
+  attachments?: Array<{
+    filename: string;    // Name of the file
+    content: string;     // Base64 encoded content
+    mimeType: string;    // MIME type (e.g., "application/pdf")
+  }>;
+}
+```
 
 ## Architecture
 
@@ -208,9 +303,9 @@ unified-gmail-mcp/
 │   ├── index.ts              # MCP server entry point
 │   ├── auth/
 │   │   ├── oauth.ts          # OAuth 2.0 flow with callback server
-│   │   └── token-store.ts    # SQLite token storage
+│   │   └── token-store.ts    # SQLite token storage (10 account limit)
 │   ├── gmail/
-│   │   ├── client.ts         # Gmail API wrapper
+│   │   ├── client.ts         # Gmail API wrapper with MIME support
 │   │   └── types.ts          # TypeScript interfaces
 │   ├── unified/
 │   │   ├── aggregator.ts     # Parallel fetch and merge logic
@@ -227,7 +322,9 @@ unified-gmail-mcp/
 
 OAuth tokens are stored locally in SQLite:
 
-**Location:** `~/.unified-gmail-mcp/accounts.db`
+**Default Location:** `~/.unified-gmail-mcp/accounts.db`
+**Custom Location:** Set `GMAIL_MCP_DATA_DIR` environment variable
+
 **Schema:**
 ```sql
 CREATE TABLE accounts (
@@ -245,6 +342,8 @@ CREATE TABLE accounts (
 3. **Chronological Sorting** - Messages sorted by date after aggregation for unified timeline
 4. **Minimal Caching** - Fresh API calls ensure data accuracy
 5. **Per-Account Limits** - Request limits divided among accounts for balanced representation
+6. **MIME Multipart** - Proper email structure for HTML + attachments
+7. **Markdown Rendering** - Uses `marked` for beautiful HTML conversion with inline styles
 
 ## Development
 
@@ -285,6 +384,16 @@ npm run dev
 1. Go to Google Cloud Console > APIs & Services > Library
 2. Search for "Gmail API"
 3. Click Enable
+
+### "Maximum of 10 accounts reached" Error
+
+**Cause:** You've already added 10 Gmail accounts
+
+**Solution:**
+Remove an existing account before adding a new one:
+```
+"Remove my old@email.com account"
+```
 
 ### Accounts Showing Disconnected
 
@@ -339,6 +448,23 @@ Built with:
 - [Model Context Protocol SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 - [Google APIs Node.js Client](https://github.com/googleapis/google-api-nodejs-client)
 - [better-sqlite3](https://github.com/WiseLibs/better-sqlite3)
+- [marked](https://github.com/markedjs/marked) - Markdown parsing
+
+## Changelog
+
+### v1.1.0
+- **New:** HTML email support (`format: 'html'`)
+- **New:** Markdown email support (`format: 'markdown'`) with auto-conversion to styled HTML
+- **New:** Attachment support for send and reply
+- **New:** 10 account limit with clear error messages
+- **New:** Configurable data directory via `GMAIL_MCP_DATA_DIR` environment variable
+- **New:** npm package support - install via `npm install -g unified-gmail-mcp` or use with npx
+
+### v1.0.0
+- Initial release
+- Unified inbox across multiple Gmail accounts
+- Send, reply, and archive functionality
+- OAuth 2.0 authentication
 
 ## Support
 

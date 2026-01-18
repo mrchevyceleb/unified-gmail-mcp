@@ -1,14 +1,47 @@
 {
   "name": "unified-gmail-mcp",
-  "version": "1.0.0",
-  "description": "Unified inbox MCP for multiple Gmail accounts",
+  "version": "1.1.0",
+  "description": "Unified inbox MCP server for multiple Gmail accounts with HTML/Markdown support and attachments",
   "main": "dist/index.js",
+  "bin": {
+    "unified-gmail-mcp": "dist/index.js"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
   },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "gmail",
+    "email",
+    "unified-inbox",
+    "claude",
+    "ai-assistant",
+    "oauth2",
+    "google-api"
+  ],
+  "author": "Matt Johnston",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrchevyceleb/unified-gmail-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mrchevyceleb/unified-gmail-mcp/issues"
+  },
+  "homepage": "https://github.com/mrchevyceleb/unified-gmail-mcp#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "better-sqlite3": "^11.0.0",
