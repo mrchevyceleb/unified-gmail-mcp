@@ -1,8 +1,36 @@
 # Unified Gmail MCP Server
 
+[![npm version](https://badge.fury.io/js/unified-gmail-mcp.svg)](https://www.npmjs.com/package/unified-gmail-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that provides a **truly unified inbox** across multiple Gmail accounts. Unlike traditional multi-account email tools that simply switch between accounts, this MCP aggregates messages from all your Gmail accounts into a single, chronologically-sorted stream.
 
 Perfect for managing personal, work, and client email addresses through Claude or other MCP-compatible AI assistants.
+
+## Quick Start
+
+```bash
+npx -y unified-gmail-mcp
+```
+
+No installation required! Add to your Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "unified-gmail": {
+      "command": "npx",
+      "args": ["-y", "unified-gmail-mcp"],
+      "env": {
+        "GOOGLE_OAUTH_CLIENT_ID": "your-client-id",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "your-client-secret"
+      }
+    }
+  }
+}
+```
+
+Then [set up Google OAuth credentials](#google-oauth-setup) and restart Claude.
 
 ## Features
 
@@ -19,15 +47,17 @@ Perfect for managing personal, work, and client email addresses through Claude o
 
 ## Installation
 
-### Option 1: npm (Recommended)
+The easiest way to use this MCP is with **npx** (no installation required):
 
-Install globally and run with npx:
+### Prerequisites
 
-```bash
-npm install -g unified-gmail-mcp
-```
+1. Node.js 18 or higher
+2. Google Cloud OAuth credentials ([setup guide](#google-oauth-setup))
+3. Claude Desktop or another MCP-compatible client
 
-Or use directly with npx (no install required):
+### Using npx (Recommended)
+
+Add to your MCP client config:
 
 ```json
 {
@@ -44,27 +74,34 @@ Or use directly with npx (no install required):
 }
 ```
 
-### Option 2: From Source
+**Benefits:**
+- ✅ No manual installation required
+- ✅ Always uses the latest version
+- ✅ Works on any machine with Node.js
+- ✅ Automatic updates on restart
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/mrchevyceleb/unified-gmail-mcp.git
-   cd unified-gmail-mcp
-   ```
+### Global Installation (Alternative)
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+If you prefer to install globally:
 
-3. **Build the project:**
-   ```bash
-   npm run build
-   ```
+```bash
+npm install -g unified-gmail-mcp
+```
 
-4. **Set up Google OAuth credentials** (see [Setup Guide](#google-oauth-setup) below)
+Then use `unified-gmail-mcp` as the command instead of `npx`.
 
-5. **Configure your MCP client** (see [Configuration](#configuration) below)
+### From Source (Development)
+
+For development or contributing:
+
+```bash
+git clone https://github.com/mrchevyceleb/unified-gmail-mcp.git
+cd unified-gmail-mcp
+npm install
+npm run build
+```
+
+Then point your config to `dist/index.js`.
 
 ## Google OAuth Setup
 
